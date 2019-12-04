@@ -17,7 +17,7 @@ codes <- codes %>%
 
 # ----02 combine data so species description and group comes from 'codes'----
 dat2 <- codes %>%
-  dplyr::select(-notes, -code) %>% # remove unnecessary columns
+  dplyr::select(-notes) %>% # remove unnecessary columns
   dplyr::right_join(dat, by = "sp_code") %>%
   dplyr::select(-col_met) # remove unnecessary columns
 
@@ -54,49 +54,28 @@ diver_density2 <- diver_density %>%
   tidyr::pivot_longer(-c(site, col_date, total_volume), #this keeps these columns in the data
                       names_to = "sp_code",
                       values_to = "total_count") %>%
-  dplyr::mutate(density = total_count / total_volume)
+  dplyr::mutate(density = total_count / total_volume) %>%
+  dplyr::ungroup()
 
-# combine with single species
+# ----07 combine with single species----
 density <- bind_rows(diver_density2, single_density)
 
+# ----08 clean up density data and combine with code----
+density_full <- density %>%
+  dplyr::right_join(codes, by = "sp_code") %>%
+  dplyr::select(-notes, -total_volume, -total_count) %>%
+  dplyr::filter(!is.na(site)) # remove NA columns
 
+# ----09 cleanup dataframes----
+rm(diver_density, diver_density2, single_density, density)
 
-
-
-
-# density counts
-  dplyr::group_by(site, col_date, sp_code) %>%
-  dplyr::summarise(total_volume = sum(vol),
-                   total_count = sum(total)) %>%
-  dplyr::mutate(density = total_count / total_volume) %>%
-  dplyr::left_join(codes, by = "sp_code") %>%
-  dplyr::select(-notes)
-
-# make wider to build in zeros
-dat2 <- dat %>%
-  mutate(sp_code2 = as.character(sp_code)) %>%
-  group_by(site, col_date, al, vol, sp_code2) %>%
-  summarise(tot_vol = sum(vol),
-            tot_count = sum(total)) %>%
-  tidyr::pivot_wider(names_from = sp_code2,
-                     values_from = tot_count,
-                     id_cols = c("site", "col_date", "al", "vol", "tot_vol"))
-dat3 <- dat2
-dat3[is.na(dat3)] <- 0
-
-dat3 %>%
-  group_by()
-
-
-
-density_dat <- dat %>%
-  mutate(sp_code2 = as.character(sp_code)) %>%
-  group_by(site, col_date, sp_code2) %>%
-  summarise(total_volume = sum(vol),
-            total_count = sum(total)) %>%
-  mutate(density = total_count / total_volume)
-
-density_dat %>%
-  tidyr::pivot_wider(id_cols = c("site", "col_date"),
-                     names_from = sp_code2,
-                     values_from = density)
+# ----10 summarize site by group----
+density_full %>%
+  group_by(site, group) %>%
+  summarise(mean = mean(density, na.rm = TRUE),
+            sd = sd(density, na.rm = TRUE)) %>%
+  ggplot() +
+  geom_bar(aes(x = site, y = mean, fill = group),
+           stat = "identity",
+           position = "stack") +
+  coord_polar()
