@@ -58,16 +58,16 @@ diver_density2 <- diver_density %>%
   dplyr::mutate(density = total_count / total_volume) %>%
   dplyr::ungroup()
 
-# ----07 combine with single species----
+# ----07 combine with single species dataframe----
 density <- bind_rows(diver_density2, single_density)
 
 # ----08 clean up density data and combine with code----
 density_full <- density %>%
   dplyr::right_join(codes, by = "sp_code") %>%
   dplyr::select(-notes, -total_volume, -total_count) %>%
-  dplyr::filter(!is.na(site)) # remove NA columns
+  dplyr::filter(!is.na(site)) # remove NA rows in site - not sure why this happened
 
-# ----09 cleanup dataframes----
+# ----09 cleanup dataframes by removing from environment----
 rm(diver_density, diver_density2, single_density, density)
 
 # ----10 summarize site by group----
@@ -76,7 +76,7 @@ density_full %>%
   dplyr::summarise(mean = mean(density, na.rm = TRUE),
             sd = sd(density, na.rm = TRUE)) %>%
   dplyr::ungroup() %>%
-  ggplot() +
+  ggplot() + # make plot!
   geom_bar(aes(x = group, y = mean, fill = group),
            stat = "identity",
            position = "stack") +
