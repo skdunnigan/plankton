@@ -84,7 +84,7 @@ density_full %>%
   scale_x_discrete(name = "Plankton Group") +
   scale_y_continuous(name = "Average density (#cells/mL)") +
   scale_fill_discrete(name = "Plankton Group") +
-  theme_cowplot() +
+  cowplot::theme_cowplot() +
   theme(axis.text.x = element_blank(),
         legend.position = "bottom")
 ggsave(here::here('output', 'density_group_site_bar.pdf'), height = 8.5, width = 11, dpi = 120)
