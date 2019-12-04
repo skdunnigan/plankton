@@ -2,6 +2,7 @@ library(tidyverse)
 library(here)
 library(janitor)
 library(readxl)
+library(cowplot)
 
 # ----01a load in data----
 dat <- readxl::read_xlsx(here::here('data', 'GTMNERR_Plankton_IK.xlsx'), sheet = "raw") %>%
@@ -75,7 +76,14 @@ density_full %>%
   summarise(mean = mean(density, na.rm = TRUE),
             sd = sd(density, na.rm = TRUE)) %>%
   ggplot() +
-  geom_bar(aes(x = site, y = mean, fill = group),
+  geom_bar(aes(x = group, y = mean, fill = group),
            stat = "identity",
            position = "stack") +
-  coord_polar()
+  facet_wrap(.~site, scales = "free_y") +
+  scale_x_discrete(name = "Plankton Group") +
+  scale_y_continuous(name = "Average density (#cells/mL)") +
+  scale_fill_discrete(name = "Plankton Group") +
+  theme_cowplot() +
+  theme(axis.text.x = element_blank(),
+        legend.position = "bottom")
+ggsave('density_group_site_bar.pdf', height = 8.5, width = 11, dpi = 120)
