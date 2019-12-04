@@ -88,3 +88,5 @@ density_full %>%
   theme(axis.text.x = element_blank(),
         legend.position = "bottom")
 ggsave(here::here('output', 'density_group_site_bar.pdf'), height = 8.5, width = 11, dpi = 120)
+
+write.csv(density_full, here::here('output', 'densities.csv'))
