@@ -72,9 +72,10 @@ rm(diver_density, diver_density2, single_density, density)
 
 # ----10 summarize site by group----
 density_full %>%
-  group_by(site, group) %>%
-  summarise(mean = mean(density, na.rm = TRUE),
+  dplyr::group_by(site, group) %>%
+  dplyr::summarise(mean = mean(density, na.rm = TRUE),
             sd = sd(density, na.rm = TRUE)) %>%
+  dplyr::ungroup() %>%
   ggplot() +
   geom_bar(aes(x = group, y = mean, fill = group),
            stat = "identity",
@@ -86,4 +87,4 @@ density_full %>%
   theme_cowplot() +
   theme(axis.text.x = element_blank(),
         legend.position = "bottom")
-ggsave('density_group_site_bar.pdf', height = 8.5, width = 11, dpi = 120)
+ggsave(here::here('output', 'density_group_site_bar.pdf'), height = 8.5, width = 11, dpi = 120)
