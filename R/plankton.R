@@ -90,3 +90,20 @@ density_full %>%
 ggsave(here::here('output', 'density_group_site_bar.pdf'), height = 8.5, width = 11, dpi = 120)
 
 write.csv(density_full, here::here('output', 'densities.csv'))
+
+# ----11 lake middle----
+View(density_full %>%
+  dplyr::filter(site == "LM") %>%
+  dplyr::group_by(species_description) %>%
+  dplyr::summarise(mean = mean(density, na.rm = TRUE),
+                   sd = sd(density, na.rm = TRUE)) %>%
+  dplyr::ungroup()
+)
+# lake middle timeseries
+density_full %>%
+  dplyr::filter(site == c("LM", "GR")) %>%
+  dplyr::group_by(col_date, site) %>%
+  dplyr::summarise(sum = sum(density)) %>%
+  ggplot() +
+  geom_point(aes(x = col_date, y = log(sum), color = site)) +
+  geom_line(aes(x = col_date, y = log(sum), color = site))
