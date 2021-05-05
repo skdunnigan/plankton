@@ -142,25 +142,57 @@ hi_lvl_density_per_samplevol <- left_join(total_hi_lvl_counts, total_sample_volu
                                        tot_sam_vol, hi_lvl_density)
 
 
-
 sp_den_primer <- sp_density_per_samplevol %>%
                   select(site, ym, sp_code, sp_density) %>%
+                  arrange(sp_code, site, ym) %>%
                   tidyr::pivot_wider(names_from = sp_code,
                                      values_from = 'sp_density',
                                      id_cols = c("site", "ym"))
 
 genus_den_primer <- genus_density_per_samplevol %>%
                     select(site, ym, genus_code, genus_density) %>%
+                    arrange(genus_code, site, ym) %>%
                     tidyr::pivot_wider(names_from = genus_code,
                                        values_from = 'genus_density',
                                        id_cols = c("site", "ym"))
 
 hi_lvl_den_primer <- hi_lvl_density_per_samplevol %>%
                      select(site, ym, hi_lvl_code, hi_lvl_density) %>%
+                     arrange(hi_lvl_code, site, ym) %>%
                      tidyr::pivot_wider(names_from = hi_lvl_code,
                                         values_from = 'hi_lvl_density',
                                         id_cols = c("site", "ym"))
 
-write.csv(sp_den_primer, here::here('output', 'data', 'sp_density_primer.csv'))
-write.csv(genus_den_primer, here::here('output', 'data', 'genus_density_primer.csv'))
-write.csv(hi_lvl_den_primer, here::here('output', 'data', 'hi_lvl_density_primer.csv'))
+
+# remove NAs before exporting data in PRIMER format
+# replace all NAs with blanks
+# this is a new dataframe because it will make everything factors
+# this is JUST to export the data into a csv without NAs
+export <- sapply(genus_den_primer, as.character)
+export[is.na(export)] <- " "
+export <- as.data.frame(export)
+write.csv(export, here::here('output', 'data', 'genus_density_primer.csv'))
+
+genus_code_ready <- sp_codes %>%
+                        select(genus_code, genus_desc, hi_lvl_code, hi_lvl_desc) %>%
+                        distinct()
+
+code_flip <- as.data.frame(t(genus_code_ready)) %>%
+                row_to_names(row_number = 1) %>%
+                write_csv(here::here('output', 'data', 'genus_tags.csv'))
+
+# hi_lvl
+export <- sapply(hi_lvl_den_primer, as.character)
+export[is.na(export)] <- " "
+export <- as.data.frame(export)
+write.csv(export, here::here('output', 'data', 'hi_lvl_density_primer.csv'))
+
+hi_lvl_code_ready <- sp_codes %>%
+        select(hi_lvl_code, hi_lvl_desc) %>%
+        distinct()
+
+code_flip <- as.data.frame(t(hi_lvl_code_ready)) %>%
+        row_to_names(row_number = 1) %>%
+        write_csv(here::here('output', 'data', 'hi_lvl_tags.csv'))
+
+
